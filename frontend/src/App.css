@@ -1,0 +1,18 @@
+/* .css-i4bv87-MuiSvgIcon-root{
+    margin-top: 4px !important;
+} */
+a{
+    line-height: 1;
+}
+/* *{
+    color: #fff;
+} */
+.sppedLink{
+    color: #646cff !important;
+    font-weight: 100;
+    text-decoration: none;
+    font-style:oblique;
+  }
+  .textfield:hover{
+     border-color: #646cff;
+  }
