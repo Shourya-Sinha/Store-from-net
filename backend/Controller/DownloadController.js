@@ -3,6 +3,7 @@ const DataModel = require('../DataModel/UrlSaving');
 //Mp4
 const ytdl = require('ytdl-core');
 
+
 //Mp3
 const ffmpeg = require('fluent-ffmpeg');
 const {PassThrough} = require('stream');
@@ -37,12 +38,12 @@ const formatFileSize = (bytes) => {
     const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10);
     return `${(bytes / (1024 ** i)).toFixed(2)} ${sizes[i]}`;
 };
+
 exports.convertUrl = async (req, res) => {
     try {
         const { VideoLink } = req.body;
 
         if (!VideoLink) {
-            console.error("Video Link is required");
             return res.status(400).json({
                 status: 'error',
                 message: "Video Link is required"
@@ -50,7 +51,6 @@ exports.convertUrl = async (req, res) => {
         }
 
         if (!ytdl.validateURL(VideoLink)) {
-            console.error("Invalid YouTube Video Link");
             return res.status(400).json({
                 status: 'error',
                 message: "Invalid YouTube Video Link"
@@ -92,13 +92,6 @@ exports.convertUrl = async (req, res) => {
         const fileSizeBytes = audioFormat.contentLength || await getFileSize(downloadUrl);
         const fileSize = formatFileSize(fileSizeBytes);
 
-        console.log('Formats:', formats);
-        console.log('Thumbnail:', thumbnail);
-        console.log('Title:', title);
-        console.log('Encoded Title:', encodedTitle);
-        console.log('File Size:', fileSize);
-        console.log('Download URL:', downloadUrl);
-
         return res.status(200).json({
             status: 'success',
             formats,
@@ -111,6 +104,12 @@ exports.convertUrl = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching download links:', error);
+        if (error.statusCode === 410) {
+            return res.status(410).json({
+                status: 'error',
+                message: 'The video is no longer available (410 Gone).'
+            });
+        }
         return res.status(500).json({
             status: 'error',
             message: error.message,
