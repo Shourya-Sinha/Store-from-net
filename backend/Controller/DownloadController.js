@@ -42,6 +42,7 @@ exports.convertUrl = async (req, res) => {
         const { VideoLink } = req.body;
 
         if (!VideoLink) {
+            console.error("Video Link is required");
             return res.status(400).json({
                 status: 'error',
                 message: "Video Link is required"
@@ -49,6 +50,7 @@ exports.convertUrl = async (req, res) => {
         }
 
         if (!ytdl.validateURL(VideoLink)) {
+            console.error("Invalid YouTube Video Link");
             return res.status(400).json({
                 status: 'error',
                 message: "Invalid YouTube Video Link"
@@ -90,6 +92,13 @@ exports.convertUrl = async (req, res) => {
         const fileSizeBytes = audioFormat.contentLength || await getFileSize(downloadUrl);
         const fileSize = formatFileSize(fileSizeBytes);
 
+        console.log('Formats:', formats);
+        console.log('Thumbnail:', thumbnail);
+        console.log('Title:', title);
+        console.log('Encoded Title:', encodedTitle);
+        console.log('File Size:', fileSize);
+        console.log('Download URL:', downloadUrl);
+
         return res.status(200).json({
             status: 'success',
             formats,
@@ -113,6 +122,7 @@ exports.downloadVideo = async (req, res) => {
     const { VideoLink, itag, title } = req.query;
 
     if (!VideoLink || !itag || !title) {
+        console.error('Missing video URL, itag, or title');
         return res.status(400).json({
             status: 'error',
             message: 'Missing video URL, itag, or title',
@@ -124,6 +134,7 @@ exports.downloadVideo = async (req, res) => {
         const format = info.formats.find(f => f.itag == itag);
 
         if (!format) {
+            console.error('Requested format not found');
             return res.status(400).json({
                 status: 'error',
                 message: 'Requested format not found',
@@ -141,7 +152,6 @@ exports.downloadVideo = async (req, res) => {
         const stream = ytdl(VideoLink, { quality: itag });
         res.setHeader('Content-Disposition', `attachment; filename="${encodedTitle}.mp4"`);
 
-        
         stream.pipe(res);
 
         stream.on('end', async () => {
@@ -171,6 +181,7 @@ exports.downloadVideo = async (req, res) => {
         });
     }
 };
+
 
 // exports.convertUrl = async (req,res) =>{
 //      try {

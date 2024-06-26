@@ -40,6 +40,56 @@ const VideoPage = () => {
   const [FileSize, setFileSize] = useState("");
   const enqueueSnackbar = useSnackbar();
 
+  // const handleDownload = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await fetch(`${BaseUrl}/fetchingLinks`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ VideoLink: videoLink }), // Ensure videoLink is sent in the request
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to get Video Download Link");
+  //     }
+
+  //     const data = await response.json();
+  //     setThumbnail(data.thumbnail);
+  //     const sanitizedTitle = sanitizeFilename(data.setingtitle);
+  //     setTitle(sanitizedTitle);
+  //     setSelectedFormat(data.selectedFormat);
+  //     setFormats(data.formats);
+  //     setFileSize(data.fileSize); // Store the VideoLink from the response
+  //     setLoading(false);
+
+  //     if (data.formats.length === 1) {
+  //       setSelectedFormat(data.formats[0].itag);
+  //     }
+  //     enqueueSnackbar('Getting Video successfully!', 'success');
+  //   } catch (error) {
+  //     console.error("Error fetching download link:", error);
+  //     enqueueSnackbar(`Error: ${error.message}`, 'error');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // const handleManualDownload = () => {
+  //   if (!selectedFormat) return;
+  //   const sanitizedTitle = sanitizeFilename(title);
+  //   if (videoLink) {
+  //     window.location.href = `${BaseUrl}/getDownloadLinks?VideoLink=${encodeURIComponent(
+  //       videoLink
+  //     )}&itag=${selectedFormat}&title=${encodeURIComponent(sanitizedTitle)}`;
+  //     enqueueSnackbar('Video Downloaded Start successfully!', 'success');
+  //   } else {
+  //     console.error("VideoLink is missing");
+  //     enqueueSnackbar(`Error: ${error.message}`, 'error');
+  //   }
+  // };
+
   const handleDownload = async () => {
     setLoading(true);
     try {
@@ -50,11 +100,12 @@ const VideoPage = () => {
         },
         body: JSON.stringify({ VideoLink: videoLink }), // Ensure videoLink is sent in the request
       });
-
+  
       if (!response.ok) {
-        throw new Error("Failed to get Video Download Link");
+        const errorText = await response.text();
+        throw new Error(`Failed to get Video Download Link: ${errorText}`);
       }
-
+  
       const data = await response.json();
       setThumbnail(data.thumbnail);
       const sanitizedTitle = sanitizeFilename(data.setingtitle);
@@ -63,7 +114,7 @@ const VideoPage = () => {
       setFormats(data.formats);
       setFileSize(data.fileSize); // Store the VideoLink from the response
       setLoading(false);
-
+  
       if (data.formats.length === 1) {
         setSelectedFormat(data.formats[0].itag);
       }
@@ -75,6 +126,8 @@ const VideoPage = () => {
       setLoading(false);
     }
   };
+  
+
 
   const handleManualDownload = () => {
     if (!selectedFormat) return;
@@ -89,14 +142,13 @@ const VideoPage = () => {
       enqueueSnackbar(`Error: ${error.message}`, 'error');
     }
   };
-
   const handleClear = () => {
     setVideoLink("");
   };
 
   return (
     <>
-      <Container
+<Container
         maxWidth={"lg"}
         sx={{ padding: 2, backgroundColor: "#424242", mt: 3 }}
       >
@@ -212,7 +264,7 @@ const VideoPage = () => {
                           )}
 
                           <Typography sx={{ color: "white" }}>
-                            VideoSize: {FileSize}{" "}
+                            Pasted Link Size: {FileSize}{" "}
                           </Typography>
                         </Stack>
                       </Stack>
