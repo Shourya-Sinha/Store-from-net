@@ -24,7 +24,7 @@ process.on("uncaughtException",(error)=>{
 const server = app.listen(port, () => {
     console.log(`SERVER IS RUNNING ON ${port}`);
   });
-
+  server.timeout = 300000;
 process.on('unhandledRejection',(err)=>{
     console.log(err);
     console.log("UNHANDLED REJECTION! Shutting down...");

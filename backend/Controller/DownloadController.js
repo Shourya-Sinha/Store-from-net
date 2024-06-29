@@ -3,7 +3,6 @@ const DataModel = require('../DataModel/UrlSaving');
 //Mp4
 const ytdl = require('ytdl-core');
 
-
 //Mp3
 const ffmpeg = require('fluent-ffmpeg');
 const {PassThrough} = require('stream');
@@ -181,6 +180,122 @@ exports.downloadVideo = async (req, res) => {
     }
 };
 
+const sanitizeFilename = (filename) => {
+    return filename
+      .replace(/[^a-z0-9_\-\.]/gi, "_") // Replace invalid characters with underscores
+      .replace(/_+/g, "_") // Replace multiple underscores with a single underscore
+      .replace(/^_+|_+$/g, ""); // Trim leading and trailing underscores
+  };
+
+exports.fetchAndConvert = async (req, res) => {
+    const { VideoLink } = req.body;
+  
+    try {
+      // Fetch video info from YouTube
+      const info = await ytdl.getInfo(VideoLink);
+      const videoDetails = {
+        thumbnail: info.videoDetails.thumbnails[0].url,
+        title: sanitizeFilename(info.videoDetails.title),
+        duration: info.videoDetails.lengthSeconds,
+        averageBitrate: info.formats.find(format => format.audioBitrate).audioBitrate || 128,
+      };
+  
+      // Calculate file size in bytes (bitrate * duration)
+      const fileSizeBytes = (videoDetails.averageBitrate * 1000 / 8) * videoDetails.duration;
+      const fileSizeMB = (fileSizeBytes / (1024 * 1024)).toFixed(2);
+  
+      // Construct download URL
+      const downloadUrl = `${req.protocol}://${req.get('host')}/downloadAudio?VideoLink=${encodeURIComponent(VideoLink)}&title=${encodeURIComponent(videoDetails.title)}`;
+  
+      // Respond with fetched details and download URL
+      res.json({
+        thumbnail: videoDetails.thumbnail,
+        title: videoDetails.title,
+        fileSize: `${fileSizeMB} MB`,
+        downloadUrl,
+      });
+    } catch (error) {
+      console.error('Error fetching and converting:', error);
+      res.status(500).json({ error: 'Failed to fetch or convert video' });
+    }
+  };
+
+  exports.downloadAudio =async (req,res) =>{
+    try {
+        const { VideoLink, itag, title } = req.query;
+
+        if (!VideoLink || !itag || !title) {
+            return res.status(400).json({
+                status: 'error',
+                message: "Missing required parameters"
+            });
+        }
+
+        if (!ytdl.validateURL(VideoLink)) {
+            return res.status(400).json({
+                status: 'error',
+                message: "Invalid YouTube Video Link"
+            });
+        }
+
+        const info = await ytdl.getInfo(VideoLink);
+        const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
+
+        if (!format) {
+            return res.status(400).json({
+                status: 'error',
+                message: "Format not found"
+            });
+        }
+
+        res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
+        ytdl(VideoLink, { format: format }).pipe(res);
+    } catch (error) {
+        console.error('Error generating download link:', error);
+        return res.status(500).json({
+            status: 'error',
+            message: error.message,
+        });
+    }
+}
+// exports.downloadAudio =async (req,res) =>{
+//     try {
+//         const { VideoLink, itag, title } = req.query;
+
+//         if (!VideoLink || !itag || !title) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: "Missing required parameters"
+//             });
+//         }
+
+//         if (!ytdl.validateURL(VideoLink)) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: "Invalid YouTube Video Link"
+//             });
+//         }
+
+//         const info = await ytdl.getInfo(VideoLink);
+//         const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
+
+//         if (!format) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: "Format not found"
+//             });
+//         }
+
+//         res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
+//         ytdl(VideoLink, { format: format }).pipe(res);
+//     } catch (error) {
+//         console.error('Error generating download link:', error);
+//         return res.status(500).json({
+//             status: 'error',
+//             message: error.message,
+//         });
+//     }
+// }
 
 // exports.convertUrl = async (req,res) =>{
 //      try {
@@ -303,70 +418,105 @@ exports.downloadVideo = async (req, res) => {
 //     }
 // };
 
-exports.downloadAudio = async (req,res) =>{
-    try {
-        const {VideoLink} = req.body;
+// exports.downloadAudio = async (req,res) =>{
+//     try {
+//         const {VideoLink} = req.body;
 
-        if(!VideoLink){
-            return res.status(400).json({
-                status:'error',
-                message : "Video Link is required"
-            });
-        }
-        if(!ytdl.validateURL(VideoLink)){
-            return res.status(400).json({
-                status:'error',
-                message : "Invalid YouTube Video Link"
-            });
-        }
+//         if(!VideoLink){
+//             return res.status(400).json({
+//                 status:'error',
+//                 message : "Video Link is required"
+//             });
+//         }
+//         if(!ytdl.validateURL(VideoLink)){
+//             return res.status(400).json({
+//                 status:'error',
+//                 message : "Invalid YouTube Video Link"
+//             });
+//         }
 
-        const sanitizeFileName = (name) => name.replace(/[<>:"/\\|?*]+/g, '');
-        const encodeFileName = (name) => encodeURIComponent(name).replace(/['()]/g, escape).replace(/\*/g, '%2A');
+//         const sanitizeFileName = (name) => name.replace(/[<>:"/\\|?*]+/g, '');
+//         const encodeFileName = (name) => encodeURIComponent(name).replace(/['()]/g, escape).replace(/\*/g, '%2A');
 
-        const info = await ytdl.getInfo(VideoLink);
-        const title = sanitizeFileName(info.videoDetails.title);
-        const encodedTitle = encodeFileName(title);
+//         const info = await ytdl.getInfo(VideoLink);
+//         const title = sanitizeFileName(info.videoDetails.title);
+//         const encodedTitle = encodeFileName(title);
        
-        res.setHeader('Content-Disposition', `attachment; filename="${encodedTitle}.mp3"`);
-        res.setHeader('Content-Type', 'audio/mpeg');
+//         res.setHeader('Content-Disposition', `attachment; filename="${encodedTitle}.mp3"`);
+//         res.setHeader('Content-Type', 'audio/mpeg');
 
-        const stream = ytdl(VideoLink, { filter: 'audioonly' });
-        const passThrough = new PassThrough();
+//         const stream = ytdl(VideoLink, { filter: 'audioonly' });
+//         const passThrough = new PassThrough();
 
-        ffmpeg(stream)
-            .audioBitrate(128)
-            .format('mp3')
-            .pipe(passThrough)
-            .on('error', (error) => {
-                console.error('Error converting video to MP3:', error);
-                res.status(500).json({
-                    status: 'error',
-                    message: 'Error converting video to MP3',
-                    thumbnail,
-                    encodedTitle,
-                });
-            });
+//         ffmpeg(stream)
+//             .audioBitrate(128)
+//             .format('mp3')
+//             .pipe(passThrough)
+//             .on('error', (error) => {
+//                 console.error('Error converting video to MP3:', error);
+//                 res.status(500).json({
+//                     status: 'error',
+//                     message: 'Error converting video to MP3',
+//                     thumbnail,
+//                     encodedTitle,
+//                 });
+//             });
 
-            passThrough.pipe(res);
-            passThrough.on('finish', async () => {
-                try {
-                  await DataModel.findOneAndUpdate(
-                    { VideoLink },
-                    { $inc: { TotalNoOfAudio: 1 } },
-                    { upsert: true, new: true }
-                  );
-                } catch (updateError) {
-                  console.error('Error updating audio count:', updateError);
-                }
-              });
+//             passThrough.pipe(res);
+//             passThrough.on('finish', async () => {
+//                 try {
+//                   await DataModel.findOneAndUpdate(
+//                     { VideoLink },
+//                     { $inc: { TotalNoOfAudio: 1 } },
+//                     { upsert: true, new: true }
+//                   );
+//                 } catch (updateError) {
+//                   console.error('Error updating audio count:', updateError);
+//                 }
+//               });
+//     } catch (error) {
+//         console.error('Error generating MP3 link:', error);
+//         return res.status(500).json({
+//             status: 'error',
+//             message: error.message,
+//         });
+//     }
+// }
+
+exports.downloadMp3 = async (req, res) => {
+    const { VideoLink, title } = req.query;
+  
+    try {
+      // Set headers for the response to prompt download
+      res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
+  
+      // Specify audio quality
+      const audioStream = ytdl(VideoLink, {
+        filter: 'audioonly',
+        quality: 'highestaudio', // Choose the highest quality audio
+      });
+      audioStream.on('error', (error) => {
+        console.error('Error downloading MP3:', error);
+        res.status(500).json({ error: 'Failed to download MP3' });
+      });
+      audioStream.on('end', async () => {
+        try {
+            await DataModel.findOneAndUpdate(
+                { VideoLink },
+                { $inc: { TotalNoOfAudio: 1 } },
+                { new: true, upsert: true }
+            )
+        } catch (error) { 
+            console.log('Error in Updating or Downloading Audio',error);
+        }
+      });
+  
+      audioStream.pipe(res);
     } catch (error) {
-        console.error('Error generating MP3 link:', error);
-        return res.status(500).json({
-            status: 'error',
-            message: error.message,
-        });
+      console.error('Error downloading MP3:', error);
+      res.status(500).json({ error: 'Failed to download MP3' });
     }
-}
+  };
 
 exports.getCounting = async (req,res) =>{
     try {

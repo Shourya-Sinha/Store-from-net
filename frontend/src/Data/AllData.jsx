@@ -2,8 +2,8 @@ import { SpeedDial, styled } from "@mui/material";
 import { Audiotrack, Cached, Done, Download, ElectricBolt, Home, MobileFriendly, PersonAdd, Videocam } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 
-var BaseUrl = "https://store-from-net.onrender.com";
-var BaseUrl2 = "http://localhost:7000";
+var BaseUrl2 = "https://store-from-net.onrender.com";
+var BaseUrl = "http://localhost:7000";
 
 const listItems1=[
     {index:1, title:'Open Youtube and copy the video URL you want to download.'},

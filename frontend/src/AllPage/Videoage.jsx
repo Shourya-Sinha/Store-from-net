@@ -3,9 +3,6 @@ import "../App.css";
 import {
   Box,
   Button,
-  Card,
-  CardContent,
-  CardMedia,
   CircularProgress,
   Container,
   FormControl,
@@ -40,42 +37,93 @@ const VideoPage = () => {
   const [FileSize, setFileSize] = useState("");
   const enqueueSnackbar = useSnackbar();
 
+  // const handleDownload = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await fetch(`${BaseUrl}/fetchingLinks`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+  //         'Accept-Language': 'en-US,en;q=0.9',
+  //       },
+  //       body: JSON.stringify({ VideoLink: videoLink }), // Ensure videoLink is sent in the request
+  //     });
+
+  //     if (!response.ok) {
+  //       const errorText = await response.text();
+  //       throw new Error(`Failed to get Video Download Link: ${errorText}`);
+  //     }
+
+  //     const data = await response.json();
+  //     setThumbnail(data.thumbnail);
+  //     const sanitizedTitle = sanitizeFilename(data.setingtitle);
+  //     setTitle(sanitizedTitle);
+  //     setSelectedFormat(data.selectedFormat);
+  //     setFormats(data.formats);
+  //     setFileSize(data.fileSize); // Store the VideoLink from the response
+  //     setLoading(false);
+
+  //     if (data.formats.length === 1) {
+  //       setSelectedFormat(data.formats[0].itag);
+  //     }
+  //     enqueueSnackbar('Getting Video successfully!', 'success');
+  //   } catch (error) {
+  //     console.error("Error fetching download link:", error);
+  //     enqueueSnackbar(`Error: ${error.message}`, 'error');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleDownload = async () => {
     setLoading(true);
     try {
+      console.log('Starting download process...');
+      console.log('Video Link:', videoLink);
+      
       const response = await fetch(`${BaseUrl}/fetchingLinks`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ VideoLink: videoLink }), // Ensure videoLink is sent in the request
+        body: JSON.stringify({ VideoLink: videoLink }),
       });
-
+  
+      console.log('Response Status:', response.status);
+  
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to get Video Download Link: ${errorText}`);
       }
-
+  
       const data = await response.json();
       setThumbnail(data.thumbnail);
       const sanitizedTitle = sanitizeFilename(data.setingtitle);
       setTitle(sanitizedTitle);
       setSelectedFormat(data.selectedFormat);
       setFormats(data.formats);
-      setFileSize(data.fileSize); // Store the VideoLink from the response
+      setFileSize(data.fileSize);
       setLoading(false);
-
+  
       if (data.formats.length === 1) {
         setSelectedFormat(data.formats[0].itag);
       }
       enqueueSnackbar('Getting Video successfully!', 'success');
     } catch (error) {
-      console.error("Error fetching download link:", error);
+      console.error('Error fetching download link:', error);
       enqueueSnackbar(`Error: ${error.message}`, 'error');
+  
+      // Fallback mechanism
+      if (error.message.includes('410 Gone')) {
+        console.log('Fallback: Trying alternative method to fetch video link...');
+        // Implement an alternative method to fetch the video link
+      }
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleManualDownload = () => {
     if (!selectedFormat) return;
@@ -84,7 +132,7 @@ const VideoPage = () => {
       window.location.href = `${BaseUrl}/getDownloadLinks?VideoLink=${encodeURIComponent(
         videoLink
       )}&itag=${selectedFormat}&title=${encodeURIComponent(sanitizedTitle)}`;
-      enqueueSnackbar('Video Downloaded Start successfully!', 'success');
+      enqueueSnackbar('Video Extracted & Sent to your default downloader successfully!', 'success');
     } else {
       console.error("VideoLink is missing");
       enqueueSnackbar(`Error: ${error.message}`, 'error');
