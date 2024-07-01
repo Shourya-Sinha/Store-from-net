@@ -29,7 +29,7 @@ const Header = () => {
         }
        }
 
-       const intervalId = setInterval(fetchCounts,15000);
+       const intervalId = setInterval(fetchCounts,5000);
        fetchCounts();
 
        return() =>{
