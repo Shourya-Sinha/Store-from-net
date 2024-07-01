@@ -2,7 +2,8 @@ import { SpeedDial, styled } from "@mui/material";
 import { Audiotrack, Cached, Done, Download, ElectricBolt, Home, MobileFriendly, PersonAdd, Videocam } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 
-var BaseUrl = "https://store-from-net.onrender.com";
+//var BaseUrl = "https://store-from-net.onrender.com";
+var BaseUrl = "https://store-from-net.vercel.app";
 var BaseUrl2 = "http://localhost:8000";
 
 const listItems1=[
