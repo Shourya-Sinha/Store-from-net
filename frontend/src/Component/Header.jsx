@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AppBar, Badge, Box, IconButton, Menu, MenuItem, Stack, Toolbar, Tooltip, Typography } from '@mui/material';
-import { AccountCircle, Audiotrack, Mail, More, Notifications, Videocam } from '@mui/icons-material';
+import { AccountCircle, Audiotrack, Bolt, Mail, More, Notifications, Videocam } from '@mui/icons-material';
 import {Menu as MenuIcons} from '@mui/icons-material';
 import '../App.css';
 import { Link } from 'react-router-dom';
@@ -12,6 +12,7 @@ const Header = () => {
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
     const [totalvideo, setTotalVideo] = useState(0);
     const [totalaudio, setTotalAudio] = useState(0);
+    const [totalshorts, setTotalshorts] = useState(0);
     const enqueueSnackbar = useSnackbar();
 
     useEffect(() =>{
@@ -21,6 +22,7 @@ const Header = () => {
           const data = await response.json();
           setTotalVideo(data.totalVideoCount);
           setTotalAudio(data.totalAudioCount);
+          setTotalshorts(data.totalShortsVideoCount);
         } catch (error) {
           console.log('Error in Counting',error);
           enqueueSnackbar(`Error fetching counts: ${error.message}`, 'error');
@@ -119,6 +121,14 @@ const Header = () => {
           </IconButton>
           <p>Audio Served</p>
         </MenuItem>
+        <MenuItem>
+          <IconButton size="large" aria-label="show 4 new mails" color="inherit">
+            <Badge badgeContent={totalshorts} color="error">
+            <Bolt />
+            </Badge>
+          </IconButton>
+          <p>Shorts Video </p>
+        </MenuItem>
         <MenuItem onClick={handleProfileMenuOpen}>
           <IconButton
             size="large"
@@ -155,7 +165,7 @@ const Header = () => {
               <Link className='navLink' to={'/'}>Home</Link>
               <Link className='navLink' to={'/audio'}>Youtube to Mp3</Link>
               <Link className='navLink' to={'/video'}>Youtube to Mp4</Link>
-              <Link className='navLink' to={'/'}><Typography variant='caption'> Youtube Shorts(progress)</Typography> </Link>
+              <Link className='navLink' to={'/shortsVideo'}> Youtube Shorts </Link>
             </Stack>
             <IconButton size="large" aria-label="show 4 new mails" color="inherit">
               <Badge badgeContent={totalvideo} color="error">
@@ -172,6 +182,17 @@ const Header = () => {
               <Badge badgeContent={totalaudio} color="error">
               <Tooltip title='Total Audio Served'>
                 <Audiotrack />
+                </Tooltip>
+              </Badge>
+            </IconButton>
+            <IconButton
+              size="large"
+              aria-label="show 17 new notifications"
+              color="inherit"
+            >
+              <Badge badgeContent={totalshorts} color="error">
+              <Tooltip title='Total Shorts Video Served'>
+                <Bolt />
                 </Tooltip>
               </Badge>
             </IconButton>

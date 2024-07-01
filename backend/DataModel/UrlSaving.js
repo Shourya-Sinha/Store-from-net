@@ -13,6 +13,14 @@ const UrlDataSchema = new mongoose.Schema({
         type:Number,
         default:0,
     },
+    url:{
+        type:String,
+        required:true,
+    },
+    TotalNoOfShortsVideo:{
+        type:Number,
+        default:0,
+    }
 });
 
 const UrlData = mongoose.model('UrlData',UrlDataSchema);

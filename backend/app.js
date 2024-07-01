@@ -12,8 +12,6 @@ app.use(express.json({ extended: true }));
 app.use(express.urlencoded({extended: true }));
 
 app.use(route);
-
-app.use(route);
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 app.get('*', (req, res) => {

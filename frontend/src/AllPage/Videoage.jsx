@@ -79,9 +79,6 @@ const VideoPage = () => {
   const handleDownload = async () => {
     setLoading(true);
     try {
-      console.log('Starting download process...');
-      console.log('Video Link:', videoLink);
-      
       const response = await fetch(`${BaseUrl}/fetchingLinks`, {
         method: 'POST',
         headers: {

@@ -16,11 +16,6 @@ process.on("uncaughtException",(error)=>{
     process.exit(1);
 })
 
-
-
-
-
-
 const server = app.listen(port, () => {
     console.log(`SERVER IS RUNNING ON ${port}`);
   });
