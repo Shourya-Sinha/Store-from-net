@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { BaseUrl } from '../Data/AllData';
 import { useSnackbar } from './SnackBar.jsx';
 
+
 const Header = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
@@ -29,7 +30,7 @@ const Header = () => {
         }
        }
 
-       const intervalId = setInterval(fetchCounts,5000);
+       const intervalId = setInterval(fetchCounts,8000);
        fetchCounts();
 
        return() =>{
