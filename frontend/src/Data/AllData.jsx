@@ -3,8 +3,8 @@ import { Audiotrack, Cached, Done, Download, ElectricBolt, Home, MobileFriendly,
 import { Link } from "react-router-dom";
 
 var BaseUrl = "https://storefromnet.onrender.com";
-var BaseUrl2 = "https://store-from-net.vercel.app";
-var BaseUrl2 = "http://localhost:7000";
+//var BaseUrl2 = "https://store-from-net.vercel.app";
+//var BaseUrl2 = "http://localhost:7000";
 
 const listItems1=[
     {index:1, title:'Open Youtube and copy the video URL you want to download.'},
